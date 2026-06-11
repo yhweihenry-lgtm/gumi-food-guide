@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gumi 的饮食小百科 🐾</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --cream: #fefaf3; --warm-white: #fffbf5;
+  --coral: #e8815b; --coral-light: #f4a88b; --coral-dark: #d0683f;
+  --sage: #7a9e7e; --sage-light: #a8c9ab;
+  --danger: #d43d3d; --danger-light: #f08080; --danger-bg: #fff0f0;
+  --text: #3d2c2c; --text-light: #6b5959; --text-muted: #9a8989;
+  --card-shadow: 0 4px 20px rgba(61,44,44,.06);
+  --card-shadow-hover: 0 10px 36px rgba(61,44,44,.12);
+  --radius: 20px; --radius-sm: 12px;
+  --transition: 0.3s cubic-bezier(.4,0,.2,1);
+  --dog-brown: #C68642; --dog-dark: #8B5E3C; --dog-belly: #F0D9B5;
+  --dog-ear: #A0652E; --dog-nose: #2C1810; --collar: #E8313F;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:2rem}
+body{
+  font-family:'Noto Sans SC',system-ui,sans-serif;
+  background:var(--cream);color:var(--text);line-height:1.7;overflow-x:hidden;
+}
+
+/* ===== Floating Decorations ===== */
+.float-paws{position:fixed;pointer-events:none;z-index:0}
+.float-paws span{position:fixed;opacity:.04;font-size:3.5rem;animation:fp 14s ease-in-out infinite}
+.float-paws span:nth-child(1){top:6%;left:4%;font-size:4rem}
+.float-paws span:nth-child(2){top:18%;right:6%;animation-delay:3s;font-size:3rem}
+.float-paws span:nth-child(3){top:38%;left:8%;animation-delay:6s;font-size:5rem}
+.float-paws span:nth-child(4){top:55%;right:4%;animation-delay:2s;font-size:3.5rem}
+.float-paws span:nth-child(5){top:72%;left:6%;animation-delay:9s;font-size:4.2rem}
+.float-paws span:nth-child(6){top:85%;right:10%;animation-delay:5s;font-size:3rem}
+@keyframes fp{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-22px) rotate(6deg)}50%{transform:translateY(-8px) rotate(-4deg)}75%{transform:translateY(-28px) rotate(3deg)}}
+
+.floating-bone{
+  position:fixed;z-index:0;cursor:pointer;pointer-events:all;
+  font-size:2rem;opacity:.12;transition:all .4s ease;
+  animation:fb 10s ease-in-out infinite;user-select:none;
+}
+.floating-bone:hover{opacity:.45;transform:scale(1.5) rotate(20deg)}
+.floating-bone:active{opacity:.8;transform:scale(2) rotate(-30deg)}
+@keyframes fb{0%,100%{transform:translateY(0) rotate(0)}33%{transform:translateY(-15px) rotate(10deg)}66%{transform:translateY(-5px) rotate(-8deg)}}
+
+.ripple{position:fixed;pointer-events:none;font-size:2.5rem;z-index:999;animation:rippleUp .9s ease-out forwards}
+@keyframes rippleUp{0%{opacity:1;transform:translateY(0) scale(.5)}100%{opacity:0;transform:translateY(-90px) scale(1.5)}}
+
+/* ===== CHOCOLATE ALERT BAR ===== */
+.choco-alert{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:linear-gradient(90deg,#d43d3d,#8b0000,#d43d3d);
+  color:#fff;text-align:center;padding:.6rem 1rem;
+  font-weight:700;font-size:.9rem;
+  transform:translateY(-100%);transition:transform .4s ease;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  box-shadow:0 2px 20px rgba(212,61,61,.5);
+}
+.choco-alert.show{transform:translateY(0)}
+.choco-alert .alert-icon{font-size:1.4rem;animation:alertPulse .8s ease-in-out infinite}
+@keyframes alertPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+.choco-alert button{
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+  color:#fff;padding:.2rem .8rem;border-radius:20px;cursor:pointer;
+  font-size:.78rem;font-weight:500;transition:background .2s;
+}
+.choco-alert button:hover{background:rgba(255,255,255,.35)}
+
+/* ===== SVG Dachshund Animations ===== */
+.svg-dog { transition: transform 0.3s ease; }
+.svg-dog.happy { animation: dogHappyBounce 0.4s ease-in-out 3; }
+.svg-dog.shocked { animation: dogShake 0.3s ease-in-out 2; }
+.svg-dog .tail { transform-origin: 30px 80px; animation: tailWag 0.6s ease-in-out infinite; }
+.svg-dog.happy .tail { animation: tailWagFast 0.25s ease-in-out infinite; }
+.svg-dog .ear { transform-origin: 185px 48px; }
+.svg-dog.happy .ear { animation: earFlop 0.5s ease-in-out 2; }
+@keyframes dogHappyBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+@keyframes dogShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+@keyframes tailWag { 0%,100%{transform:rotate(-15deg)} 50%{transform:rotate(25deg)} }
+@keyframes tailWagFast { 0%,100%{transform:rotate(-25deg)} 50%{transform:rotate(35deg)} }
+@keyframes earFlop { 0%,100%{transform:rotate(0)} 30%{transform:rotate(15deg)} 60%{transform:rotate(-5deg)} }
+
+/* ===== Hero ===== */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;isolation:isolate}
+.hero-bg{position:absolute;inset:0;z-index:-2}
+.hero-bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.38);transform:scale(1.05);animation:heroZoom 20s ease-out forwards}
+@keyframes heroZoom{from{transform:scale(1.15)}to{transform:scale(1.05)}}
+.hero-overlay{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(61,44,44,.4),rgba(61,44,44,.1) 60%,var(--cream))}
+.hero-content{position:relative;z-index:1;max-width:750px;padding:2rem;margin-top:-2rem}
+.hero-svg-wrap{display:inline-block;margin-bottom:.5rem;animation:fadeInUp .8s ease-out}
+.hero-svg-wrap svg{width:clamp(160px,30vw,240px);height:auto}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.15);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);color:#fff;padding:.4rem 1.4rem;border-radius:50px;font-size:.9rem;font-weight:500;letter-spacing:.05em;margin-bottom:.8rem;animation:fadeInUp .8s ease-out .1s both}
+.hero h1{font-family:'ZCOOL KuaiLe','Noto Sans SC',cursive;font-size:clamp(2.6rem,7vw,4.8rem);color:#fff;line-height:1.2;margin-bottom:.8rem;text-shadow:0 2px 16px rgba(0,0,0,.35);animation:fadeInUp .8s ease-out .2s both}
+.hero h1 .accent{color:var(--coral-light)}
+.hero-subtitle{font-size:clamp(1rem,2vw,1.2rem);color:rgba(255,255,255,.82);font-weight:300;margin-bottom:2rem;animation:fadeInUp .8s ease-out .3s both}
+.hero-scroll{display:inline-flex;flex-direction:column;align-items:center;gap:.4rem;color:rgba(255,255,255,.65);font-size:.85rem;cursor:pointer;animation:bounceDown 2s ease-in-out infinite,fadeInUp .8s ease-out .5s both;transition:color var(--transition);text-decoration:none}
+.hero-scroll:hover{color:#fff}
+.hero-scroll .arrow{font-size:1.4rem;animation:arrowBounce 1.5s ease-in-out infinite}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounceDown{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes arrowBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ===== Section Styles ===== */
+.section{position:relative;z-index:1;padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:3.5rem}
+.section-tag{display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.25rem 1rem;border-radius:50px;margin-bottom:.75rem}
+.section-tag.safe{background:var(--sage-light);color:#2d4a31}
+.section-tag.danger{background:var(--danger-light);color:#5c1e1a}
+.section-tag.gallery-tag{background:#e8d5c4;color:#5c3d2e}
+.section-tag.game-tag{background:#fde4c8;color:#8b5e3c}
+.section-title{font-family:'ZCOOL KuaiLe','Noto Sans SC',cursive;font-size:clamp(1.8rem,4vw,2.6rem);color:var(--text);margin-bottom:.5rem}
+.section-desc{color:var(--text-light);font-size:1.05rem;font-weight:300;max-width:500px;margin:0 auto}
+
+/* ===== About Card ===== */
+.about-card{display:grid;grid-template-columns:1fr 1.2fr;gap:2.5rem;background:var(--warm-white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--card-shadow)}
+.about-img{position:relative;min-height:340px;overflow:hidden}
+.about-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.about-card:hover .about-img img{transform:scale(1.04)}
+.about-text{padding:2.5rem 2.5rem 2.5rem 0;display:flex;flex-direction:column;justify-content:center}
+.about-text h3{font-family:'ZCOOL KuaiLe','Noto Sans SC',cursive;font-size:1.6rem;color:var(--coral);margin-bottom:.75rem}
+.about-text p{color:var(--text-light);font-size:.98rem;margin-bottom:.75rem;line-height:1.8}
+.about-stats{display:flex;gap:1.5rem;margin-top:1rem}
+.about-stat{text-align:center;cursor:pointer;transition:transform .2s;user-select:none}
+.about-stat:hover{transform:scale(1.1)}
+.about-stat:active{transform:scale(.95)}
+.about-stat .num{font-family:'ZCOOL KuaiLe',cursive;font-size:1.5rem;color:var(--coral)}
+.about-stat .label{font-size:.78rem;color:var(--text-muted)}
+
+/* ===== SVG Divider ===== */
+.svg-divider{text-align:center;padding:1rem 0;position:relative;z-index:1;overflow:hidden}
+.svg-divider svg{width:clamp(260px,50vw,400px);height:auto}
+.svg-divider .walk-dog{animation:walkAcross 8s linear infinite}
+.svg-divider .walk-dog:nth-child(2){animation-delay:-3s}
+.svg-divider .walk-dog:nth-child(3){animation-delay:-6s}
+@keyframes walkAcross{0%{transform:translateX(-120%)}100%{transform:translateX(420%)}}
+
+/* ===== Food Cards ===== */
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.food-card{
+  background:var(--warm-white);border-radius:var(--radius);padding:1.8rem;
+  box-shadow:var(--card-shadow);transition:all var(--transition);
+  position:relative;overflow:hidden;display:flex;gap:1.2rem;align-items:flex-start;
+  cursor:pointer;user-select:none;
+}
+.food-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;transition:all var(--transition)}
+.food-card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-4px)}
+.food-card:hover::before{width:100%;opacity:.04}
+.food-card.safe::before{background:var(--sage)}
+.food-card.danger::before{background:var(--danger)}
+.food-card:active{transform:scale(.97)}
+.food-card .sparkle{position:absolute;pointer-events:none;font-size:1.4rem;animation:sparklePop .7s ease-out forwards;z-index:5}
+@keyframes sparklePop{0%{opacity:1;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1.3)}}
+.food-icon{flex-shrink:0;width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+.food-card.safe .food-icon{background:#eef5ef}
+.food-card.danger .food-icon{background:#fdf0ef}
+.food-info h4{font-size:1.1rem;font-weight:700;margin-bottom:.25rem;color:var(--text)}
+.food-info .why{font-size:.85rem;color:var(--text-muted);margin-bottom:.25rem}
+.food-info .gumi-says{font-size:.88rem;color:var(--text-light);font-style:italic;margin-top:.4rem;padding-left:.75rem;border-left:2px solid}
+.food-card.safe .gumi-says{border-color:var(--sage-light)}
+.food-card.danger .gumi-says{border-color:var(--danger-light)}
+
+/* Chocolate card SPECIAL */
+.food-card.choco-special{
+  border:3px solid #d43d3d;
+  animation:chocoGlow 1.8s ease-in-out infinite;
+  background:linear-gradient(135deg,#fffbf5,#fff0f0);
+}
+@keyframes chocoGlow{0%,100%{box-shadow:0 4px 20px rgba(212,61,61,.06)}50%{box-shadow:0 8px 40px rgba(212,61,61,.25)}}
+.food-card.choco-special .food-icon{background:#fde8e8;font-size:2.1rem}
+.food-card.choco-special::after{content:'⚠️ 头号杀手';position:absolute;top:.6rem;right:.8rem;background:#d43d3d;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .7rem;border-radius:20px;animation:alertPulse 1s ease-in-out infinite}
+
+/* ===== Chocolate MEGA Warning ===== */
+.choco-mega-warning{
+  background:linear-gradient(135deg,#d43d3d,#8b0000);color:#fff;
+  border-radius:var(--radius);padding:2.2rem;margin-bottom:2rem;
+  text-align:center;position:relative;overflow:hidden;cursor:pointer;
+  box-shadow:0 8px 32px rgba(212,61,61,.35);transition:transform .2s;
+}
+.choco-mega-warning:active{transform:scale(.97)}
+.choco-mega-warning::before{content:'🍫';position:absolute;font-size:10rem;opacity:.06;top:-30px;right:-40px;animation:chocoFloat 4s ease-in-out infinite;pointer-events:none}
+@keyframes chocoFloat{0%,100%{transform:rotate(0)}50%{transform:rotate(18deg)}}
+.choco-mega-warning h3{font-size:1.8rem;margin-bottom:.5rem;font-family:'ZCOOL KuaiLe',cursive}
+.choco-mega-warning p{font-size:.95rem;opacity:.92;max-width:550px;margin:0 auto}
+.choco-mega-warning .big-emoji{font-size:3rem;display:block;margin-bottom:.5rem}
+
+.warning-banner{background:linear-gradient(135deg,#fdf0ef,#fce8e6);border:2px dashed var(--danger-light);border-radius:var(--radius);padding:1.5rem 2rem;margin-bottom:2.5rem;text-align:center}
+.warning-banner .warn-icon{font-size:2rem;margin-bottom:.5rem}
+.warning-banner p{color:var(--danger);font-weight:500;font-size:1rem}
+
+/* ===== Interactive Feeding Game ===== */
+.game-section{background:linear-gradient(180deg,#fefaf3,#fff8ec,#fefaf3);border-radius:24px;padding:2.5rem 1.5rem;box-shadow:var(--card-shadow)}
+.game-container{display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+
+.game-scene{
+  position:relative;background:linear-gradient(180deg,#d4e8d4 0%,#b8d8b8 40%,#c8a87c 80%,#b8956a 100%);
+  border-radius:24px;padding:2rem 2rem .5rem;
+  box-shadow:inset 0 2px 20px rgba(0,0,0,.06);border:4px solid #b8d8b8;
+  min-width:320px;overflow:hidden;
+}
+.game-scene .sky-cloud{position:absolute;font-size:2.5rem;opacity:.5;top:10px;animation:cloudDrift 15s linear infinite}
+.game-scene .sky-cloud:nth-child(2){top:25px;left:60%;animation-delay:-7s;font-size:2rem;opacity:.4}
+@keyframes cloudDrift{0%{left:-10%}100%{left:110%}}
+.game-scene .scene-ground{text-align:center;font-size:.7rem;color:#6b8e6b;margin-top:.3rem}
+
+.game-svg-wrap{cursor:pointer;display:inline-block;transition:filter .3s}
+.game-svg-wrap:hover{filter:brightness(1.05)}
+.game-svg-wrap svg{width:240px;height:auto}
+
+.gumi-feedback{
+  position:absolute;pointer-events:none;font-size:1.5rem;font-weight:700;
+  animation:feedbackFloat 1.5s ease-out forwards;z-index:10;white-space:nowrap;
+  top:20%;left:50%;transform:translateX(-50%);
+}
+@keyframes feedbackFloat{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(.5)}30%{opacity:1;transform:translateX(-50%) translateY(-35px) scale(1.2)}100%{opacity:0;transform:translateX(-50%) translateY(-100px) scale(.8)}}
+
+.game-stats{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;justify-content:center}
+.game-stat{background:var(--warm-white);border-radius:16px;padding:.8rem 1.4rem;box-shadow:var(--card-shadow);text-align:center;min-width:100px}
+.game-stat .stat-num{font-family:'ZCOOL KuaiLe',cursive;font-size:2rem;color:var(--coral)}
+.game-stat .stat-label{font-size:.75rem;color:var(--text-muted)}
+
+.food-buttons{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;max-width:600px}
+.food-btn{
+  width:56px;height:56px;border-radius:16px;border:2px solid #e8d5c4;
+  background:var(--warm-white);font-size:1.6rem;
+  cursor:pointer;transition:all .2s;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+  display:flex;align-items:center;justify-content:center;
+}
+.food-btn:hover{transform:translateY(-5px) scale(1.1);box-shadow:0 8px 24px rgba(0,0,0,.12);border-color:var(--coral-light)}
+.food-btn:active{transform:scale(.88)}
+.food-btn .tooltip{position:absolute;bottom:115%;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:.7rem;padding:.25rem .65rem;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;font-family:'Noto Sans SC',sans-serif}
+.food-btn:hover .tooltip{opacity:1}
+.food-btn.safe-food{border-color:#c8e6c9}
+.food-btn.danger-food{border-color:#ef9a9a;background:#fff5f5}
+.food-btn.danger-food:hover{border-color:var(--danger);box-shadow:0 8px 24px rgba(212,61,61,.22)}
+
+.game-reset{background:var(--coral);color:#fff;border:none;padding:.5rem 1.5rem;border-radius:20px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.game-reset:hover{background:var(--coral-dark);transform:scale(1.05)}
+
+/* ===== Gallery ===== */
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.gallery-item{position:relative;border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;aspect-ratio:1;box-shadow:var(--card-shadow);border:4px solid #e8d5c4;transition:all var(--transition)}
+.gallery-item:hover{transform:scale(1.03);box-shadow:var(--card-shadow-hover);border-color:var(--coral-light)}
+.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.gallery-item:hover img{transform:scale(1.08)}
+.gallery-item .overlay{position:absolute;inset:0;background:rgba(61,44,44,.2);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--transition)}
+.gallery-item:hover .overlay{opacity:1}
+.gallery-item .overlay span{font-size:2rem;color:#fff}
+
+/* ===== Lightbox ===== */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s ease;cursor:pointer}
+.lightbox.active{opacity:1;pointer-events:all}
+.lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);transform:scale(.9);transition:transform .3s ease}
+.lightbox.active img{transform:scale(1)}
+.lightbox-close,.lightbox-nav{position:absolute;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.1);transition:background .2s;border:none;outline:none}
+.lightbox-close{top:1.5rem;right:1.5rem;font-size:2rem;width:48px;height:48px}
+.lightbox-close:hover,.lightbox-nav:hover{background:rgba(255,255,255,.25)}
+.lightbox-nav{top:50%;transform:translateY(-50%);font-size:2rem;width:52px;height:52px}
+.lightbox-nav.prev{left:1.5rem}
+.lightbox-nav.next{right:1.5rem}
+.lightbox-counter{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:.85rem}
+
+/* ===== Footer ===== */
+.footer{text-align:center;padding:3rem 1.5rem;position:relative;z-index:1}
+.footer-divider{width:60px;height:4px;background:var(--coral-light);border-radius:2px;margin:0 auto 1.5rem}
+.footer p{color:var(--text-muted);font-size:.9rem}
+.footer .heart{display:inline-block;animation:heartbeat 1.5s ease-in-out infinite;color:var(--coral)}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}60%{transform:scale(1)}}
+
+/* ===== Scroll Animations ===== */
+.fade-up{opacity:0;transform:translateY(40px);transition:opacity .7s ease-out,transform .7s ease-out}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .section{padding:3rem 1rem}
+  .about-card{grid-template-columns:1fr}
+  .about-text{padding:1.5rem}
+  .about-img{min-height:240px;order:-1}
+  .food-grid{grid-template-columns:1fr;gap:1rem}
+  .gallery-grid{grid-template-columns:repeat(2,1fr);gap:.75rem}
+  .hero h1{font-size:2rem}
+  .about-stats{gap:1rem;flex-wrap:wrap;justify-content:center}
+  .lightbox-nav{width:40px;height:40px;font-size:1.5rem}
+  .lightbox-nav.prev{left:.5rem}.lightbox-nav.next{right:.5rem}
+  .game-stats{gap:1rem}
+  .food-btn{width:48px;height:48px;font-size:1.3rem;border-radius:12px}
+  .game-scene{padding:1.5rem 1rem .3rem;min-width:auto}
+  .game-svg-wrap svg{width:180px}
+  .food-card{padding:1.2rem}
+  .choco-mega-warning{padding:1.2rem}
+  .choco-mega-warning h3{font-size:1.2rem}
+}
+@media(min-width:1400px){
+  .food-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- Floating Paws -->
+<div class="float-paws">
+  <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+</div>
+
+<!-- Clickable Bones -->
+<span class="floating-bone" data-msg="🦴 Gumi的奖品骨头！" style="top:12%;right:12%">🦴</span>
+<span class="floating-bone" data-msg="🍖 闻到肉香味了！" style="top:48%;left:4%">🦴</span>
+<span class="floating-bone" data-msg="🐕 Gumi开心地摇尾巴！" style="top:78%;right:18%">🦴</span>
+
+<!-- Chocolate Alert -->
+<div class="choco-alert" id="chocoAlert">
+  <span class="alert-icon">⚠️</span>
+  🍫 巧克力对狗狗有剧毒！永远不要让Gumi碰巧克力！
+  <button onclick="document.getElementById('chocoAlert').classList.remove('show')">我知道了 ✕</button>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="home">
+  <div class="hero-bg"><img src="photos/0c4dbadab20315423b3d621d1c4493c1.jpg" alt="Gumi"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-svg-wrap">
+      <!-- Cute SVG Dachshund - Standing/Waving -->
+      <svg viewBox="0 0 260 130" xmlns="http://www.w3.org/2000/svg">
+        <!-- Tail -->
+        <path d="M48,70 Q20,50 25,35 Q30,25 45,32" stroke="#C68642" fill="none" stroke-width="9" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" values="-10 48 70;25 48 70;-10 48 70" dur="0.7s" repeatCount="indefinite"/>
+        </path>
+        <!-- Back legs -->
+        <rect x="62" y="92" width="14" height="24" rx="7" fill="#A0652E"/>
+        <ellipse cx="69" cy="116" rx="9" ry="5" fill="#8B5E3C"/>
+        <rect x="82" y="92" width="14" height="24" rx="7" fill="#C68642"/>
+        <ellipse cx="89" cy="116" rx="9" ry="5" fill="#A0652E"/>
+        <!-- Front legs -->
+        <rect x="148" y="92" width="14" height="24" rx="7" fill="#C68642"/>
+        <ellipse cx="155" cy="116" rx="9" ry="5" fill="#A0652E"/>
+        <rect x="168" y="92" width="14" height="24" rx="7" fill="#A0652E"/>
+        <ellipse cx="175" cy="116" rx="9" ry="5" fill="#8B5E3C"/>
+        <!-- Body -->
+        <ellipse cx="120" cy="82" rx="62" ry="24" fill="#C68642"/>
+        <ellipse cx="120" cy="78" rx="56" ry="19" fill="#D4944E"/>
+        <ellipse cx="120" cy="90" rx="40" ry="12" fill="#F0D9B5"/>
+        <!-- Collar -->
+        <rect x="168" y="76" width="30" height="9" rx="4" fill="#E8313F"/>
+        <circle cx="186" cy="89" r="5" fill="#FFD700"/>
+        <!-- Neck -->
+        <ellipse cx="188" cy="70" rx="16" ry="20" fill="#C68642"/>
+        <!-- Head -->
+        <ellipse cx="216" cy="58" rx="28" ry="26" fill="#C68642"/>
+        <ellipse cx="216" cy="55" rx="24" ry="22" fill="#D4944E"/>
+        <!-- Snout -->
+        <ellipse cx="244" cy="65" rx="20" ry="14" fill="#D4944E"/>
+        <ellipse cx="244" cy="62" rx="16" ry="11" fill="#E0B080"/>
+        <!-- Nose -->
+        <ellipse cx="260" cy="61" rx="6" ry="5" fill="#2C1810"/>
+        <ellipse cx="258" cy="59" rx="2" ry="1.5" fill="rgba(255,255,255,.35)"/>
+        <!-- Mouth -->
+        <path d="M235,70 Q242,78 250,70" stroke="#8B5E3C" fill="none" stroke-width="2" stroke-linecap="round"/>
+        <!-- Tongue -->
+        <ellipse cx="242" cy="77" rx="5" ry="7" fill="#FF8899"/>
+        <line x1="242" y1="73" x2="242" y2="80" stroke="#E06677" stroke-width="1"/>
+        <!-- Eye -->
+        <ellipse cx="225" cy="53" rx="8" ry="9" fill="white"/>
+        <ellipse cx="227" cy="54" rx="5" ry="6" fill="#2C1810"/>
+        <circle cx="229" cy="52" r="2.2" fill="white"/>
+        <!-- Eyebrow -->
+        <path d="M216,42 Q224,38 232,42" stroke="#8B5E3C" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Ear -->
+        <g transform-origin="198 52">
+          <ellipse cx="198" cy="52" rx="13" ry="28" fill="#8B5E3C" transform="rotate(-18,198,52)">
+            <animateTransform attributeName="transform" type="rotate" values="-18 198 52;-10 198 52;-18 198 52" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+          <ellipse cx="199" cy="54" rx="8" ry="20" fill="#A0652E" transform="rotate(-18,199,54)">
+            <animateTransform attributeName="transform" type="rotate" values="-18 199 54;-10 199 54;-18 199 54" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+        </g>
+        <!-- Blush -->
+        <ellipse cx="240" cy="62" rx="6" ry="4" fill="rgba(255,150,150,.3)"/>
+        <!-- Sparkles -->
+        <text x="250" y="42" font-size="12" opacity="0.7">✨</text>
+      </svg>
+    </div>
+    <span class="hero-badge">🐶 腊肠犬 Gumi 的小天地</span>
+    <h1><span class="accent">Gumi</span> 的饮食小百科</h1>
+    <p class="hero-subtitle">了解什么能吃、什么不能吃 · 给腊肠宝贝最健康的每一天 🦴</p>
+    <a href="#about" class="hero-scroll">了解更多<span class="arrow">↓</span></a>
+  </div>
+</section>
+
+<!-- ==================== ABOUT ==================== -->
+<section class="section" id="about">
+  <div class="section-header fade-up">
+    <span class="section-tag gallery-tag">🐕 关于 Gumi</span>
+    <h2 class="section-title">认识我的腊肠宝贝</h2>
+    <p class="section-desc">一只对吃特别有热情的长条小可爱</p>
+  </div>
+  <div class="about-card fade-up">
+    <div class="about-img">
+      <img src="photos/a208dd097185c7b9464e208e473b26de.jpg" alt="Gumi">
+    </div>
+    <div class="about-text">
+      <h3>你好！我是 Gumi 🐕</h3>
+      <p>Gumi 是一只活泼可爱的<strong>腊肠犬</strong>，身体长长的、腿短短的，最大的爱好就是——<strong>吃</strong>！每当听到零食袋的声音，两只大耳朵瞬间竖起来，尾巴摇得像小风扇。</p>
+      <p>作为Gumi的铲屎官，我深知饮食对腊肠犬健康的重要性。所以整理了这份饮食指南，记录Gumi喜欢的健康食物，也提醒自己哪些<strong>绝对不能碰</strong>。</p>
+      <div class="about-stats">
+        <div class="about-stat" onclick="spawnEmoji(this,'🐾')"><div class="num">🐾</div><div class="label">贪吃指数</div><div class="num" style="font-size:1.2rem">MAX</div></div>
+        <div class="about-stat" onclick="spawnEmoji(this,'🍗')"><div class="num">❤️</div><div class="label">最爱食物</div><div class="num" style="font-size:1.2rem">鸡胸肉</div></div>
+        <div class="about-stat" onclick="spawnEmoji(this,'🥕')"><div class="num">🥕</div><div class="label">每天零食</div><div class="num" style="font-size:1.2rem">胡萝卜</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SVG Dachshund Divider - Walking dogs -->
+<div class="svg-divider fade-up">
+  <svg viewBox="0 0 400 50" xmlns="http://www.w3.org/2000/svg">
+    <g class="walk-dog">
+      <ellipse cx="12" cy="35" rx="10" ry="6" fill="#C68642"/>
+      <ellipse cx="23" cy="32" rx="6" ry="5" fill="#C68642"/>
+      <circle cx="30" cy="30" r="4" fill="#8B5E3C"/>
+      <rect x="7" y="38" width="4" height="8" rx="2" fill="#A0652E"/>
+      <rect x="15" y="38" width="4" height="8" rx="2" fill="#A0652E"/>
+    </g>
+    <g class="walk-dog">
+      <ellipse cx="12" cy="35" rx="10" ry="6" fill="#D4944E"/>
+      <ellipse cx="23" cy="32" rx="6" ry="5" fill="#D4944E"/>
+      <circle cx="30" cy="30" r="4" fill="#A0652E"/>
+      <rect x="7" y="38" width="4" height="8" rx="2" fill="#C68642"/>
+      <rect x="15" y="38" width="4" height="8" rx="2" fill="#C68642"/>
+    </g>
+    <g class="walk-dog">
+      <ellipse cx="12" cy="35" rx="10" ry="6" fill="#8B5E3C"/>
+      <ellipse cx="23" cy="32" rx="6" ry="5" fill="#8B5E3C"/>
+      <circle cx="30" cy="30" r="4" fill="#5C3317"/>
+      <rect x="7" y="38" width="4" height="8" rx="2" fill="#6B3A1F"/>
+      <rect x="15" y="38" width="4" height="8" rx="2" fill="#6B3A1F"/>
+    </g>
+  </svg>
+</div>
+
+<!-- ==================== SAFE FOODS ==================== -->
+<section class="section" id="safe-foods" style="padding-top:1rem">
+  <div class="section-header fade-up">
+    <span class="section-tag safe">✅ 可以吃</span>
+    <h2 class="section-title">Gumi 爱吃清单</h2>
+    <p class="section-desc">点击卡片看看Gumi的反应~ 这些健康又安全</p>
+  </div>
+  <div class="food-grid">
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'😋')">
+      <div class="food-icon">🍗</div><div class="food-info"><h4>鸡胸肉</h4><p class="why">优质蛋白质，低脂肪易消化</p><p class="gumi-says">Gumi的最爱！闻到味道就坐得端端正正等投喂~</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'🤤')">
+      <div class="food-icon">🎃</div><div class="food-info"><h4>南瓜</h4><p class="why">富含膳食纤维，帮助肠胃蠕动</p><p class="gumi-says">蒸熟的南瓜甜甜糯糯，Gumi吃完舒服地打盹儿</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'😆')">
+      <div class="food-icon">🥕</div><div class="food-info"><h4>胡萝卜</h4><p class="why">维生素A丰富，热量低又爽口</p><p class="gumi-says">嘎嘣脆！Gumi的日常小零食，咔嚓咔嚓响~</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'😍')">
+      <div class="food-icon">🍎</div><div class="food-info"><h4>苹果（去核）</h4><p class="why">果胶+维生素C，清新口气</p><p class="gumi-says">切成小块的苹果脆甜多汁，但果核必须去掉！</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'🫐')">
+      <div class="food-icon">🫐</div><div class="food-info"><h4>蓝莓</h4><p class="why">天然抗氧化剂，增强免疫力</p><p class="gumi-says">一颗颗当训练奖励，Gumi为了吃蓝莓什么都听得懂</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'😋')">
+      <div class="food-icon">🍠</div><div class="food-info"><h4>红薯</h4><p class="why">膳食纤维+维生素A，饱腹营养</p><p class="gumi-says">煮熟后香甜松软，Gumi吃完舔嘴巴一脸幸福</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'🥒')">
+      <div class="food-icon">🥒</div><div class="food-info"><h4>黄瓜</h4><p class="why">含水量高，清爽低卡解暑神器</p><p class="gumi-says">夏天啃一片冰镇黄瓜，凉凉的超爱~</p></div>
+    </div>
+    <div class="food-card safe fade-up" onclick="cardSparkle(this,'🥚')">
+      <div class="food-icon">🥚</div><div class="food-info"><h4>熟鸡蛋</h4><p class="why">优质蛋白+卵磷脂，美毛健体</p><p class="gumi-says">偶尔半个水煮蛋，吃得小心翼翼怕掉渣</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHOCOLATE WARNING ==================== -->
+<section class="section" style="padding-top:1rem;padding-bottom:0">
+  <div class="choco-mega-warning fade-up" id="chocoMegaWarning" onclick="chocoExplode()">
+    <span class="big-emoji">🍫☠️</span>
+    <h3>巧克力 = 狗狗的头号杀手！</h3>
+    <p>巧克力含有<strong>可可碱 (Theobromine)</strong>，狗狗完全无法代谢。<br>即使一小块黑巧克力也可能让Gumi中毒身亡！</p>
+    <p style="margin-top:.8rem;font-size:.85rem;opacity:.85">🏥 误食巧克力请立即联系兽医！症状：呕吐、腹泻、心跳异常、抽搐、死亡</p>
+    <p style="font-size:.7rem;opacity:.6;margin-top:.4rem">👆 点击这里查看更多警告</p>
+  </div>
+</section>
+
+<!-- ==================== DANGEROUS FOODS ==================== -->
+<section class="section" id="danger-foods" style="padding-top:2rem">
+  <div class="section-header fade-up">
+    <span class="section-tag danger">🚫 绝对不能吃</span>
+    <h2 class="section-title">Gumi 禁食清单</h2>
+    <p class="section-desc">对狗狗有毒，再香也不能心软！</p>
+  </div>
+  <div class="warning-banner fade-up">
+    <div class="warn-icon">⚠️</div>
+    <p>以下食物对狗狗有毒！即使Gumi用最可怜的眼神看着你，也<strong>绝对不能心软</strong>！</p>
+  </div>
+  <div class="food-grid">
+    <div class="food-card danger choco-special fade-up" onclick="cardSparkle(this,'💀')">
+      <div class="food-icon">🍫</div><div class="food-info"><h4>⚠️ 巧克力 ⚠️</h4><p class="why">可可碱——狗无法代谢的头号杀手</p><p class="gumi-says">☠️ <strong>头号危险品！</strong>一点点都不行！中毒症状：呕吐、腹泻、心跳异常、抽搐、死亡。永远锁好！</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'😰')">
+      <div class="food-icon">🍇</div><div class="food-info"><h4>葡萄 & 葡萄干</h4><p class="why">不明毒素，损伤肾脏</p><p class="gumi-says">⚠️ 即使一小颗也可能急性肾衰竭。掉地上立刻捡走！</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'🤢')">
+      <div class="food-icon">🧅</div><div class="food-info"><h4>洋葱 & 大蒜</h4><p class="why">硫代硫酸盐，破坏红细胞</p><p class="gumi-says">⚠️ 生熟都危险！导致溶血性贫血，Gumi会虚弱无力</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'😱')">
+      <div class="food-icon">🍬</div><div class="food-info"><h4>木糖醇（代糖）</h4><p class="why">引发胰岛素大量分泌</p><p class="gumi-says">⚠️ 藏在无糖口香糖、糖果、牙膏里。极小剂量致低血糖+肝损伤！</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'🤮')">
+      <div class="food-icon">🥑</div><div class="food-info"><h4>牛油果</h4><p class="why">含Persin毒素，引发呕吐腹泻</p><p class="gumi-says">⚠️ 人类觉得健康，对Gumi是毒药。果肉果核都危险</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'😵')">
+      <div class="food-icon">🥜</div><div class="food-info"><h4>澳洲坚果</h4><p class="why">不明毒素，影响神经系统</p><p class="gumi-says">⚠️ 几颗就足以让Gumi虚弱、呕吐、体温升高</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'😫')">
+      <div class="food-icon">🍺</div><div class="food-info"><h4>酒精</h4><p class="why">乙醇中毒，损伤中枢神经</p><p class="gumi-says">⚠️ 一口啤酒都不行！代谢不了酒精，致呼吸困难+昏迷</p></div>
+    </div>
+    <div class="food-card danger fade-up" onclick="cardSparkle(this,'😨')">
+      <div class="food-icon">☕</div><div class="food-info"><h4>咖啡因</h4><p class="why">刺激中枢神经和心脏</p><p class="gumi-says">⚠️ 咖啡、茶、能量饮料远离Gumi。误食心跳加速、抽搐</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEEDING GAME ==================== -->
+<section class="section" id="feeding-game">
+  <div class="section-header fade-up">
+    <span class="section-tag game-tag">🎮 互动游戏</span>
+    <h2 class="section-title">来喂 Gumi 吃东西吧！</h2>
+    <p class="section-desc">点击食物喂给Gumi，看看它的反应~ 🐾</p>
+  </div>
+  <div class="game-section fade-up">
+    <div class="game-container">
+      <div class="game-stats">
+        <div class="game-stat"><div class="stat-num" id="feedCount">0</div><div class="stat-label">🍖 已喂食次数</div></div>
+        <div class="game-stat" style="background:linear-gradient(135deg,#fff5f5,#fff0f0)"><div class="stat-num" id="warnCount" style="color:var(--danger)">0</div><div class="stat-label">⚠️ 危险警告</div></div>
+        <button class="game-reset" onclick="resetGame()">🔄 重新开始</button>
+      </div>
+
+      <!-- Game Scene with SVG Dachshund -->
+      <div class="game-scene" id="gameScene">
+        <span class="sky-cloud">☁️</span><span class="sky-cloud">☁️</span>
+        <div class="game-svg-wrap" id="gameDogWrap">
+          <!-- SVG Dachshund for feeding game -->
+          <svg id="gameDogSvg" class="svg-dog" viewBox="0 0 260 130" xmlns="http://www.w3.org/2000/svg">
+            <!-- Tail -->
+            <path class="tail" d="M48,70 Q20,50 25,35 Q30,25 45,32" stroke="#C68642" fill="none" stroke-width="9" stroke-linecap="round"/>
+            <!-- Back legs -->
+            <rect x="62" y="92" width="14" height="24" rx="7" fill="#A0652E"/>
+            <ellipse cx="69" cy="116" rx="9" ry="5" fill="#8B5E3C"/>
+            <rect x="82" y="92" width="14" height="24" rx="7" fill="#C68642"/>
+            <ellipse cx="89" cy="116" rx="9" ry="5" fill="#A0652E"/>
+            <!-- Front legs -->
+            <rect x="148" y="92" width="14" height="24" rx="7" fill="#C68642"/>
+            <ellipse cx="155" cy="116" rx="9" ry="5" fill="#A0652E"/>
+            <rect x="168" y="92" width="14" height="24" rx="7" fill="#A0652E"/>
+            <ellipse cx="175" cy="116" rx="9" ry="5" fill="#8B5E3C"/>
+            <!-- Body -->
+            <ellipse cx="120" cy="82" rx="62" ry="24" fill="#C68642"/>
+            <ellipse cx="120" cy="78" rx="56" ry="19" fill="#D4944E"/>
+            <ellipse cx="120" cy="90" rx="40" ry="12" fill="#F0D9B5"/>
+            <!-- Collar -->
+            <rect x="168" y="76" width="30" height="9" rx="4" fill="#E8313F"/>
+            <circle cx="186" cy="89" r="5" fill="#FFD700"/>
+            <!-- Neck -->
+            <ellipse cx="188" cy="70" rx="16" ry="20" fill="#C68642"/>
+            <!-- Head -->
+            <ellipse cx="216" cy="58" rx="28" ry="26" fill="#C68642"/>
+            <ellipse cx="216" cy="55" rx="24" ry="22" fill="#D4944E"/>
+            <!-- Snout -->
+            <ellipse cx="244" cy="65" rx="20" ry="14" fill="#D4944E"/>
+            <ellipse cx="244" cy="62" rx="16" ry="11" fill="#E0B080"/>
+            <!-- Nose -->
+            <ellipse cx="260" cy="61" rx="6" ry="5" fill="#2C1810"/>
+            <ellipse cx="258" cy="59" rx="2" ry="1.5" fill="rgba(255,255,255,.35)"/>
+            <!-- Mouth (hidden by default, shown when happy) -->
+            <g id="mouthNormal">
+              <path d="M235,70 Q242,76 250,70" stroke="#8B5E3C" fill="none" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g id="mouthHappy" style="display:none">
+              <path d="M233,68 Q242,82 252,68" stroke="#8B5E3C" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+              <ellipse cx="242" cy="78" rx="5" ry="7" fill="#FF8899"/>
+            </g>
+            <g id="mouthShocked" style="display:none">
+              <ellipse cx="242" cy="72" rx="7" ry="10" fill="#2C1810"/>
+              <ellipse cx="242" cy="70" rx="5" ry="6" fill="#E06060"/>
+            </g>
+            <!-- Eye -->
+            <ellipse id="eyeNormal" cx="225" cy="53" rx="8" ry="9" fill="white"/>
+            <ellipse id="eyePupil" cx="227" cy="54" rx="5" ry="6" fill="#2C1810"/>
+            <circle cx="229" cy="52" r="2.2" fill="white"/>
+            <!-- Eye shocked -->
+            <ellipse id="eyeShocked" cx="225" cy="53" rx="9" ry="10" fill="white" style="display:none"/>
+            <ellipse id="eyeShockedPupil" cx="226" cy="54" rx="3" ry="3.5" fill="#2C1810" style="display:none"/>
+            <!-- Eyebrow -->
+            <path d="M216,42 Q224,38 232,42" stroke="#8B5E3C" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Ear -->
+            <g class="ear">
+              <ellipse cx="198" cy="52" rx="13" ry="28" fill="#8B5E3C" transform="rotate(-18,198,52)"/>
+              <ellipse cx="199" cy="54" rx="8" ry="20" fill="#A0652E" transform="rotate(-18,199,54)"/>
+            </g>
+            <!-- Blush -->
+            <ellipse cx="240" cy="62" rx="6" ry="4" fill="rgba(255,150,150,.3)"/>
+            <!-- Food bowl -->
+            <ellipse cx="220" cy="118" rx="16" ry="6" fill="#999"/>
+            <rect x="206" y="112" width="28" height="6" rx="2" fill="#aaa"/>
+            <text x="212" y="110" font-size="10">🥣</text>
+          </svg>
+        </div>
+        <div class="scene-ground">🟫 Gumi的小院子 🟫</div>
+      </div>
+
+      <!-- Food Buttons -->
+      <div style="text-align:center">
+        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem">✅ 安全食物</p>
+        <div class="food-buttons">
+          <button class="food-btn safe-food" onclick="feedGumi('chicken')">🍗<span class="tooltip">鸡胸肉</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('pumpkin')">🎃<span class="tooltip">南瓜</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('carrot')">🥕<span class="tooltip">胡萝卜</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('apple')">🍎<span class="tooltip">苹果</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('blueberry')">🫐<span class="tooltip">蓝莓</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('sweetpotato')">🍠<span class="tooltip">红薯</span></button>
+          <button class="food-btn safe-food" onclick="feedGumi('egg')">🥚<span class="tooltip">熟鸡蛋</span></button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:.2rem">
+        <p style="font-size:.78rem;color:var(--danger);margin-bottom:.5rem">🚫 危险食物（试试看...）</p>
+        <div class="food-buttons">
+          <button class="food-btn danger-food" onclick="feedGumi('chocolate')">🍫<span class="tooltip">巧克力!!!</span></button>
+          <button class="food-btn danger-food" onclick="feedGumi('grape')">🍇<span class="tooltip">葡萄</span></button>
+          <button class="food-btn danger-food" onclick="feedGumi('onion')">🧅<span class="tooltip">洋葱</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SVG Dachshund Divider 2 -->
+<div class="svg-divider fade-up">
+  <svg viewBox="0 0 400 50" xmlns="http://www.w3.org/2000/svg">
+    <g class="walk-dog"><ellipse cx="12" cy="35" rx="10" ry="6" fill="#C68642"/><ellipse cx="23" cy="32" rx="6" ry="5" fill="#C68642"/><circle cx="30" cy="30" r="4" fill="#8B5E3C"/><rect x="7" y="38" width="4" height="8" rx="2" fill="#A0652E"/><rect x="15" y="38" width="4" height="8" rx="2" fill="#A0652E"/></g>
+    <g class="walk-dog"><ellipse cx="12" cy="35" rx="10" ry="6" fill="#D4944E"/><ellipse cx="23" cy="32" rx="6" ry="5" fill="#D4944E"/><circle cx="30" cy="30" r="4" fill="#A0652E"/><rect x="7" y="38" width="4" height="8" rx="2" fill="#C68642"/><rect x="15" y="38" width="4" height="8" rx="2" fill="#C68642"/></g>
+    <g class="walk-dog"><ellipse cx="12" cy="35" rx="10" ry="6" fill="#8B5E3C"/><ellipse cx="23" cy="32" rx="6" ry="5" fill="#8B5E3C"/><circle cx="30" cy="30" r="4" fill="#5C3317"/><rect x="7" y="38" width="4" height="8" rx="2" fill="#6B3A1F"/><rect x="15" y="38" width="4" height="8" rx="2" fill="#6B3A1F"/></g>
+  </svg>
+</div>
+
+<!-- ==================== GALLERY ==================== -->
+<section class="section" id="gallery">
+  <div class="section-header fade-up">
+    <span class="section-tag gallery-tag">📸 相册</span>
+    <h2 class="section-title">Gumi 的可爱瞬间</h2>
+    <p class="section-desc">点击照片放大查看~</p>
+  </div>
+  <div class="gallery-grid fade-up">
+    <div class="gallery-item" data-index="0"><img src="photos/06bd2259af93923811d8825213b70816.jpg" alt="Gumi 1" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+    <div class="gallery-item" data-index="1"><img src="photos/0c4dbadab20315423b3d621d1c4493c1.jpg" alt="Gumi 2" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+    <div class="gallery-item" data-index="2"><img src="photos/83355f9537dbae99a58546c0bd1375fd.jpg" alt="Gumi 3" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+    <div class="gallery-item" data-index="3"><img src="photos/8c60491a2c4bc85b7f1a4a53b344abe4.jpg" alt="Gumi 4" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+    <div class="gallery-item" data-index="4"><img src="photos/a208dd097185c7b9464e208e473b26de.jpg" alt="Gumi 5" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+    <div class="gallery-item" data-index="5"><img src="photos/ef5ad9ad5f5ff425752c9bf3eda04097.jpg" alt="Gumi 6" loading="lazy"><div class="overlay"><span>🔍</span></div></div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close">&times;</button>
+  <button class="lightbox-nav prev">‹</button>
+  <img src="" alt="" id="lightbox-img">
+  <button class="lightbox-nav next">›</button>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-divider"></div>
+  <p>用心爱护 Gumi，从每一口食物开始 <span class="heart">❤️</span></p>
+  <p style="margin-top:.5rem;font-size:.78rem;color:var(--coral)">🐾 腊肠犬 Gumi's Food Guide · 2026</p>
+</footer>
+
+<script>
+// ===== Feeding Game =====
+let feedCount = 0, warnCount = 0;
+const dogSvg = document.getElementById('gameDogSvg');
+const gameScene = document.getElementById('gameScene');
+const mouthNormal = document.getElementById('mouthNormal');
+const mouthHappy = document.getElementById('mouthHappy');
+const mouthShocked = document.getElementById('mouthShocked');
+const eyeNormal = document.getElementById('eyeNormal');
+const eyePupil = document.getElementById('eyePupil');
+const eyeShocked = document.getElementById('eyeShocked');
+const eyeShockedPupil = document.getElementById('eyeShockedPupil');
+
+function setDogMood(mood) {
+  dogSvg.classList.remove('happy', 'shocked');
+  mouthNormal.style.display = 'none';
+  mouthHappy.style.display = 'none';
+  mouthShocked.style.display = 'none';
+  eyeNormal.style.display = 'none';
+  eyePupil.style.display = 'none';
+  eyeShocked.style.display = 'none';
+  eyeShockedPupil.style.display = 'none';
+
+  if (mood === 'happy') {
+    dogSvg.classList.add('happy');
+    mouthHappy.style.display = '';
+    eyeNormal.style.display = '';
+    eyePupil.style.display = '';
+  } else if (mood === 'shocked') {
+    dogSvg.classList.add('shocked');
+    mouthShocked.style.display = '';
+    eyeShocked.style.display = '';
+    eyeShockedPupil.style.display = '';
+  } else {
+    mouthNormal.style.display = '';
+    eyeNormal.style.display = '';
+    eyePupil.style.display = '';
+  }
+  setTimeout(() => { if (mood !== 'idle') setDogMood('idle'); }, mood === 'happy' ? 1500 : 2000);
+}
+
+function showFeedback(msg, color) {
+  const el = document.createElement('div');
+  el.className = 'gumi-feedback';
+  el.textContent = msg;
+  el.style.color = color;
+  gameScene.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+function spawnFloatingEmojis(emojis, count) {
+  const scene = document.getElementById('gameScene');
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const span = document.createElement('span');
+      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      span.style.cssText = `position:absolute;pointer-events:none;font-size:${14+Math.random()*20}px;left:${20+Math.random()*70}%;top:${10+Math.random()*40}%;animation:rippleUp 1.2s ease-out forwards;z-index:5`;
+      scene.appendChild(span);
+      setTimeout(() => span.remove(), 1200);
+    }, i * 40);
+  }
+}
+
+window.feedGumi = function(food) {
+  const safe = ['chicken','pumpkin','carrot','apple','blueberry','sweetpotato','egg'];
+  const danger = ['chocolate','grape','onion'];
+
+  if (safe.includes(food)) {
+    setDogMood('happy');
+    feedCount++;
+    document.getElementById('feedCount').textContent = feedCount;
+    spawnFloatingEmojis(['❤️','💕','💖','✨','🥰','😋'], 5);
+    const msgs = ['好吃! 😋','还要! 🐾','yummy~','汪汪! ❤️','吧唧吧唧!','再来!'];
+    showFeedback(msgs[Math.floor(Math.random()*msgs.length)], '#7a9e7e');
+    gameScene.style.transform = 'scale(1.03)';
+    setTimeout(() => gameScene.style.transform = '', 150);
+    if (feedCount % 10 === 0) {
+      spawnFloatingEmojis(['🎉','🏆','🌟','💝','🐾'], 10);
+      showFeedback('🎉 Gumi太幸福了!', '#e8815b');
+    }
+  } else if (danger.includes(food)) {
+    setDogMood('shocked');
+    warnCount++;
+    document.getElementById('warnCount').textContent = warnCount;
+    spawnFloatingEmojis(['⚠️','💀','🚫','❌','😱'], 4);
+    const msgs = food === 'chocolate' ? ['🍫 有毒!!!','会死的! 💀','不能吃!!','快拿开!!'] : ['有毒!! ⚠️','不能吃!','危险! 🚫'];
+    showFeedback(msgs[Math.floor(Math.random()*msgs.length)], '#d43d3d');
+    gameScene.style.transform = 'translateX(-6px)';
+    setTimeout(() => gameScene.style.transform = 'translateX(6px)', 60);
+    setTimeout(() => gameScene.style.transform = 'translateX(-3px)', 120);
+    setTimeout(() => gameScene.style.transform = '', 180);
+    const alert = document.getElementById('chocoAlert');
+    if (alert && !alert.classList.contains('show')) {
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 4000);
+    }
+  }
+};
+
+window.resetGame = function() {
+  feedCount = warnCount = 0;
+  document.getElementById('feedCount').textContent = '0';
+  document.getElementById('warnCount').textContent = '0';
+  setDogMood('idle');
+  showFeedback('🔄 重置啦!', '#6b5959');
+};
+
+// Click dog to pet
+document.getElementById('gameDogWrap').addEventListener('click', function(e) {
+  if (e.target.closest('.food-btn')) return;
+  const msgs = ['汪汪! 🐾','好舒服~','嗷呜~ ❤️','再摸摸!','嘻嘻~','蹭蹭~'];
+  showFeedback(msgs[Math.floor(Math.random()*msgs.length)], '#e8815b');
+  spawnFloatingEmojis(['💕','🐾','✨'], 2);
+});
+
+// ===== Chocolate mega warning explosion =====
+window.chocoExplode = function() {
+  const warn = document.getElementById('chocoMegaWarning');
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => {
+      const r = document.createElement('span');
+      r.className = 'ripple';
+      r.textContent = ['🍫','💀','⚠️','🚫','☠️','🙅'][Math.floor(Math.random()*6)];
+      r.style.left = (10 + Math.random() * 80) + '%';
+      r.style.top = (20 + Math.random() * 50) + '%';
+      r.style.position = 'fixed';
+      r.style.fontSize = (2 + Math.random() * 3) + 'rem';
+      document.body.appendChild(r);
+      setTimeout(() => r.remove(), 900);
+    }, i * 50);
+  }
+  warn.style.transform = 'scale(1.04)';
+  setTimeout(() => warn.style.transform = '', 200);
+};
+
+// ===== Card Sparkle =====
+function cardSparkle(card, emoji) {
+  const s = document.createElement('span');
+  s.className = 'sparkle';
+  s.textContent = emoji;
+  s.style.left = (20 + Math.random() * 60) + '%';
+  s.style.top = (10 + Math.random() * 40) + '%';
+  s.style.setProperty('--sx', (Math.random() * 60 - 30) + 'px');
+  s.style.setProperty('--sy', (-Math.random() * 50 - 10) + 'px');
+  card.appendChild(s);
+  setTimeout(() => s.remove(), 700);
+}
+
+// ===== Spawn Emoji =====
+function spawnEmoji(el, emoji) {
+  const rect = el.getBoundingClientRect();
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  r.textContent = emoji;
+  r.style.left = (rect.left + rect.width/2 - 15) + 'px';
+  r.style.top = rect.top + 'px';
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 900);
+}
+
+// ===== Clickable Floating Bones =====
+document.querySelectorAll('.floating-bone').forEach(bone => {
+  bone.addEventListener('click', function(e) {
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    r.textContent = '🦴';
+    r.style.left = (e.clientX - 15) + 'px';
+    r.style.top = (e.clientY - 15) + 'px';
+    r.style.fontSize = '3rem';
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 900);
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#3d2c2c;color:#fff;padding:.5rem 1.2rem;border-radius:20px;font-size:.85rem;z-index:999;pointer-events:none;animation:fadeInUp .3s ease-out,fadeOut .5s ease-out 1.2s forwards;font-family:"Noto Sans SC",sans-serif';
+    toast.textContent = this.dataset.msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1800);
+  });
+});
+
+// ===== Scroll Animations =====
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); }});
+}, { rootMargin: '0px 0px -60px 0px', threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// ===== Lightbox =====
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lightbox-img');
+const lbCounter = document.getElementById('lightboxCounter');
+const images = [
+  'photos/06bd2259af93923811d8825213b70816.jpg',
+  'photos/0c4dbadab20315423b3d621d1c4493c1.jpg',
+  'photos/83355f9537dbae99a58546c0bd1375fd.jpg',
+  'photos/8c60491a2c4bc85b7f1a4a53b344abe4.jpg',
+  'photos/a208dd097185c7b9464e208e473b26de.jpg',
+  'photos/ef5ad9ad5f5ff425752c9bf3eda04097.jpg'
+];
+let curIdx = 0;
+function openLb(i){ curIdx=i; lbImg.src=images[i]; lbCounter.textContent=(i+1)+' / '+images.length; lightbox.classList.add('active'); document.body.style.overflow='hidden'; }
+function closeLb(){ lightbox.classList.remove('active'); document.body.style.overflow=''; }
+function prevLb(){ curIdx=(curIdx-1+images.length)%images.length; lbImg.src=images[curIdx]; lbCounter.textContent=(curIdx+1)+' / '+images.length; }
+function nextLb(){ curIdx=(curIdx+1)%images.length; lbImg.src=images[curIdx]; lbCounter.textContent=(curIdx+1)+' / '+images.length; }
+document.querySelectorAll('.gallery-item').forEach((item,i) => item.addEventListener('click',() => openLb(i)));
+lightbox.addEventListener('click',e => { if(e.target===lightbox) closeLb(); });
+document.querySelector('.lightbox-close').addEventListener('click',closeLb);
+document.querySelector('.lightbox-nav.prev').addEventListener('click',e => { e.stopPropagation(); prevLb(); });
+document.querySelector('.lightbox-nav.next').addEventListener('click',e => { e.stopPropagation(); nextLb(); });
+document.addEventListener('keydown',e => {
+  if(!lightbox.classList.contains('active')) return;
+  if(e.key==='Escape') closeLb();
+  if(e.key==='ArrowLeft') prevLb();
+  if(e.key==='ArrowRight') nextLb();
+});
+
+// ===== Hero scroll =====
+document.querySelector('.hero-scroll').addEventListener('click',function(e){ e.preventDefault(); document.getElementById('about').scrollIntoView({behavior:'smooth'}); });
+
+// ===== Chocolate alert timing =====
+setTimeout(() => { const a=document.getElementById('chocoAlert'); if(a) a.classList.add('show'); }, 4000);
+setTimeout(() => { const a=document.getElementById('chocoAlert'); if(a) a.classList.remove('show'); }, 10000);
+
+console.log('🐾 Gumi 的饮食小百科 准备就绪！');
+console.log('🍫 记住：巧克力对狗狗有剧毒！');
+console.log('🎮 滚动到互动游戏区域来喂Gumi！');
+console.log('🦴 点击漂浮骨头和Gumi本人有惊喜~');
+</script>
+</body>
+</html>
